@@ -616,7 +616,7 @@ def bounding_box(points):
 # =======================
 screw_dimensions = {
     'm3': {'nut_thickness': 2.4, 'nut_inner_diam': 5.4, 'nut_outer_diam': 6.1, 'screw_outer_diam': 3.0, 'cap_diam': 5.5, 'cap_height': 3.0},
-    'm4': {'nut_thickness': 3.1, 'nut_inner_diam': 7.0, 'nut_outer_diam': 7.9, 'screw_outer_diam': 4.0, 'cap_diam': 6.9, 'cap_height': 3.9},
+    'm4': {'nut_thickness': 3.2, 'nut_inner_diam': 7.0, 'nut_outer_diam': 7.9, 'screw_outer_diam': 4.0, 'cap_diam': 6.9, 'cap_height': 3.9},
     'm5': {'nut_thickness': 4.7, 'nut_inner_diam': 7.9, 'nut_outer_diam': 8.8, 'screw_outer_diam': 5.0, 'cap_diam': 8.7, 'cap_height': 5},
 }
 
@@ -653,10 +653,15 @@ def screw(screw_type='m3', screw_length=16):
     cap_rad = dims['cap_diam'] / 2
     cap_height = dims['cap_height']
 
+    shaft = cylinder(shaft_rad, screw_length)
+    shaft.add_param('$fs', 1)
+    cap = cylinder(cap_rad, cap_height)
+    cap.add_param('$fs', 1)
+
     ret = union()(
-        cylinder(shaft_rad, screw_length),
+        shaft,
         up(screw_length)(
-            cylinder(cap_rad, cap_height)
+            cap
         )
     )
     return ret
@@ -664,12 +669,12 @@ def screw(screw_type='m3', screw_length=16):
 
 def nut(screw_type='m3'):
     dims = screw_dimensions[screw_type.lower()]
-    outer_rad = dims['nut_outer_diam']
-    inner_rad = dims['screw_outer_diam']
+    outer_rad = dims['nut_outer_diam']/2
+    inner_rad = dims['screw_outer_diam']/2
 
     ret = difference()(
-        circle(outer_rad, segments=6),
-        circle(inner_rad)
+        cylinder(outer_rad, segments=6,h=dims['nut_thickness']),
+        translate([0,0,-1])(cylinder(inner_rad,h=dims['nut_thickness']+2)),
     )
     return ret
 
